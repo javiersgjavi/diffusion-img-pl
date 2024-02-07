@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+
+ container_img_diff:
+  image: img_diff
+  volumes:
+   - ../:/app/
+  stdin_open: true
+  tty: true
+  deploy:
+   resources:
+    reservations:
+     devices:
+      - capabilities: [gpu]

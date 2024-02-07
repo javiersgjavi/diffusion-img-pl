@@ -1,1 +1,1 @@
-# diffusion-img-pyln
+# diffusion-time-series
