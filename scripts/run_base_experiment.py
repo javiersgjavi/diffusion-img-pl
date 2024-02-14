@@ -2,11 +2,9 @@ import sys
 sys.path.append('./')
 
 from torch.optim import Adam, AdamW
-from src.data.electric import NormalPeriod
-from src.data.waves import Waves
-from src.models.engine import DiffusionEngine
+from src.data.landscape import LandscapeDataModule
 from src.models.unet import UNet
-from src.models.diffusion_model import DiffusionModel
+from src.models.diffusion import DiffusionModel
 
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -18,20 +16,10 @@ def main():
     #dataset = NormalPeriod()
     #dm = dataset.get_dm()
 
-    dataset = Waves()
-    dm = dataset.get_dm()
+    dm = LandscapeDataModule()
 
 
-    imputer = DiffusionEngine(
-        model_class= UNet,
-        model_kwargs=None,
-        optim_class=AdamW,
-        optim_kwargs=dict({'lr': 1e-3}),
-        scheduler_class=None,
-        scheduler_kwargs=None,
-        scaler=dm.scalers['target'],
-        batch_size=dataset.get_batch_size(),
-    )
+    model = DiffusionModel()
 
     logger = TensorBoardLogger(
         save_dir='./logs',
@@ -53,17 +41,17 @@ def main():
     ]
 
     trainer = Trainer(
-        max_epochs=100,
+        max_epochs=300,
         default_root_dir='./logs',
         logger=logger,
         accelerator='gpu',
-        devices=1,
+        devices=[2],
         callbacks=callbaks,
         )
 
-    trainer.fit(imputer, dm)
+    trainer.fit(model, dm)
 
-    trainer.test(imputer, datamodule=dm)
+    trainer.test(model, datamodule=dm)
 
 if __name__=='__main__':
     main()
