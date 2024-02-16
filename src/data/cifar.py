@@ -1,3 +1,6 @@
+import os
+from pytorch_lightning.utilities.types import EVAL_DATALOADERS, TRAIN_DATALOADERS
+import torch
 import torchvision
 import pytorch_lightning as pl
 from PIL import Image
@@ -5,8 +8,8 @@ from PIL import Image
 from torch.utils.data import DataLoader, random_split
 
 
-class LandscapeDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir='./data/', batch_size=16):
+class CifarDataModule(pl.LightningDataModule):
+    def __init__(self, data_dir='./data/cifar10-64', batch_size=16):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
@@ -22,9 +25,8 @@ class LandscapeDataModule(pl.LightningDataModule):
             torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
 
-        dataset = torchvision.datasets.ImageFolder(self.data_dir, transform=transforms)
-        
-        self.data_train, self.data_test = random_split(dataset, [0.95, 0.05])
+        self.data_train = torchvision.datasets.ImageFolder(f'{self.data_dir}/train', transform=transforms)
+        self.data_test = torchvision.datasets.ImageFolder(f'{self.data_dir}/test', transform=transforms)
 
     def train_dataloader(self):
         return DataLoader(self.data_train, batch_size=self.batch_size, shuffle=True)

@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 class Scheduler:
 
@@ -50,7 +51,7 @@ class Scheduler:
 
 
 class LinearScheduler(Scheduler):
-    def __init__(self, steps, beta_start, beta_end):
+    def __init__(self, steps, beta_start=1e-4, beta_end=0.02):
         '''self.beta_start = beta_start
         self.beta_end = beta_end
         self.steps = steps'''
@@ -59,4 +60,26 @@ class LinearScheduler(Scheduler):
 
         self.alpha = 1. - self.beta
         self.alpha_hat = torch.cumprod(self.alpha, dim=0)
-    
+
+class CosineScheduler(Scheduler):
+    def __init__(self, s=0.008, max_beta=0.999, num_steps=1000):
+        self.max_beta = max_beta
+        self.s = s
+
+        self.beta = self.create_beta(num_steps).float()
+        self.alpha = 1 - self.beta
+        self.alpha_hat = torch.cumprod(self.alpha, dim=0).float()
+
+    def create_beta(self, num_steps):
+        betas = np.zeros(num_steps)
+        for i in range(num_steps):
+            t1 = i / num_steps
+            t2 = (i+1) / num_steps
+            res = 1 - (self.alpha_bar_fn(t2) / self.alpha_bar_fn(t1))
+            betas[i] = res
+
+        betas = torch.from_numpy(betas)
+        return torch.clamp(betas, max=self.max_beta)
+
+    def alpha_bar_fn(self, t):
+        return np.cos((t + self.s) / (1+self.s) * np.pi / 2) ** 2

@@ -1,10 +1,8 @@
 import sys
 sys.path.append('./')
 
-from torch.optim import Adam, AdamW
-from src.data.landscape import LandscapeDataModule
-from src.models.unet import UNet
-from src.models.diffusion import DiffusionModel
+from src.data.cifar import CifarDataModule
+from src.models.cond_diffusion import CondDiffusionModel
 
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -16,10 +14,10 @@ def main():
     #dataset = NormalPeriod()
     #dm = dataset.get_dm()
 
-    dm = LandscapeDataModule()
+    dm = CifarDataModule()
 
 
-    model = DiffusionModel()
+    model = CondDiffusionModel()
 
     logger = TensorBoardLogger(
         save_dir='./logs',
@@ -51,7 +49,7 @@ def main():
 
     trainer.fit(model, dm)
 
-    trainer.test(model, datamodule=dm)
+    trainer.test(model, dm)
 
 if __name__=='__main__':
     main()
