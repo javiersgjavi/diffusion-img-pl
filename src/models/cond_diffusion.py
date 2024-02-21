@@ -3,11 +3,23 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import pytorch_lightning as pl
+from diffusers import DDPMScheduler
 
-from src.models.schedulers import LinearScheduler, CosineScheduler
 from src.models.unet import UNet_conditional, EMA
 from src.utils import save_samples
 
+class Scheduler:
+    def __init__(self, **kwargs):
+        self.scheduler = DDPMScheduler(**kwargs)
+
+    def forward(self, x, step):
+        noise = torch.randn_like(x)
+        return self.scheduler.add_noise(x, noise, step), noise
+    
+    def backwards(self, x_t, predicted_noise, step):
+        step = step[0]
+        return self.scheduler.step(predicted_noise, step, x_t).prev_sample
+    
 class RandomStack:
     def __init__(self, n):
         self.n = int(n)
@@ -30,7 +42,7 @@ class CondDiffusionModel(pl.LightningModule):
         self.noise_steps = noise_steps
         self.channels = channels
         self.num_classes = num_classes
-        self.scheduler = CosineScheduler(noise_steps)
+        self.scheduler = Scheduler(beta_schedule='squaredcos_cap_v2')
         self.ema = EMA(0.995)
         self.random = RandomStack(1e5)
         self.prob_uncond = 0.1
