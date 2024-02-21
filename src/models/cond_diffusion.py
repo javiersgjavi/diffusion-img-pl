@@ -5,7 +5,6 @@ from tqdm import tqdm
 import pytorch_lightning as pl
 from diffusers import DDPMScheduler
 
-from src.models.schedulers import LinearScheduler, CosineScheduler
 from src.models.unet import UNet_conditional, EMA
 from src.utils import save_samples
 
